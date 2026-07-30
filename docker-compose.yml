@@ -1,0 +1,31 @@
+services:
+  app:
+    build: .
+    image: harisaran-portfolio
+    container_name: portfolio
+    restart: unless-stopped
+    # Internal only — Cloudflare Tunnel reaches it over the compose network.
+    expose:
+      - "3000"
+    # For LAN-only testing without the tunnel, comment out `expose` above and
+    # uncomment this to reach it at http://192.168.1.10:3000
+    # ports:
+    #   - "3000:3000"
+    networks:
+      - web
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    container_name: cloudflared
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      # Set TUNNEL_TOKEN in a local .env file (never committed).
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+    depends_on:
+      - app
+    networks:
+      - web
+
+networks:
+  web:
